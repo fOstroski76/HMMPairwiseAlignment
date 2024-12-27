@@ -6,7 +6,7 @@ Course page: https://www.fer.unizg.hr/en/course/enbio2
 
 Project contributors: Fran Ostroški & Leon Hegedić
 
-====================================================================================================================================
+=======================================================================================================
 ## Usage:
 
 1. Place your desired .fasta format file(s) in the input folder (will be created on first run if it doesnt exist)
@@ -19,7 +19,7 @@ Project contributors: Fran Ostroški & Leon Hegedić
 
 4. *dodaj tekst kad bumo imali dalje*
 
-====================================================================================================================================
+=======================================================================================================
 
 ## Minimal system requirements: 
 
