@@ -1,8 +1,11 @@
 #include "needleman_wunsch.h"
+#include "utils.h"
 
 using namespace std;
 
-void needleman_wnsch(string x, string y){ 
+void needleman_wunsch(pair<string, string> pair, const string& file_path){ 
+    string x = pair.first;
+    string y = pair.second;
     int n = x.length();
     int m = y.length();
 
@@ -50,11 +53,8 @@ void needleman_wnsch(string x, string y){
         }
     }
 
-    // Reverse the aligned strings
     std::reverse(aligned_x.begin(), aligned_x.end());
     std::reverse(aligned_y.begin(), aligned_y.end());
 
-    // Output the alignment
-    std::cout << "Aligned Sequence X: " << aligned_x << std::endl;
-    std::cout << "Aligned Sequence Y: " << aligned_y << std::endl;
+    save_pair_into_file(file_path, make_pair(aligned_x, aligned_y));   
 }

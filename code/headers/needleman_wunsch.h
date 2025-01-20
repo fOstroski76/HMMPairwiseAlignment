@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 
-void needleman_wnsch(vector<int> x, vector<int> y);
+using namespace std;
+
+void needleman_wunsch(pair<string, string> pair, const string& file_path);
 
 #endif 

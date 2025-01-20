@@ -1,28 +1,62 @@
 #include "model.h"
 #include "utils.h"
 
-#include <vector>
-
 using namespace std;
 
 //model parameters
 double pis[3];
 double trans[3][3];
-double emissions[3][5][5];
+
+// emission matrixes
+double emission_M[4][4];
+double emission_Ix[4];
+double emission_Iy[4];
 
 //alpha and beta
 double alpha[MAX_SIZE][3];
 double beta[MAX_SIZE][3];
 
-void forward_algorithm(vector<int> x, vector<int> y){
+// check if emission is possible
+bool check_emission(char xt, char yt, int state){
+    if(state == 0){
+        if(xt == '-' || yt == '-') return false;
+    } else {
+        if(xt != '-' && yt != '-') return false;
+
+        if(state == 1 && xt == '-') return false;
+
+        if(state == 2 && yt == '-') return false;
+
+    }   
+
+    return true;
+}
+
+// get the emission depending on the state
+double& get_emission(char xt, char yt, int state){
+    if(state == 0){
+        return emission_M[convert_char_into_int(xt)][convert_char_into_int(yt)];
+    } else if(state == 1){
+        return emission_Ix[convert_char_into_int(xt)];
+    } else {
+        return emission_Iy[convert_char_into_int(yt)];
+    }
+}
+
+// forward algorithm for alpha
+void forward_algorithm(pair<string, string> pairs){
+
+    string x = pairs.first;
+    string y = pairs.second;
 
     //init size and sum
     int size = max_size(x.size());
-    double sum = 0;
+    double sum = 0.0;
 
     //init alpha values
     for(int i = 0; i < 3; i++){
-        sum += (alpha[0][i] = pis[i] * emissions[i][x[0]][y[0]]);
+        if(check_emission(x[0], y[0], i))
+            sum += (alpha[0][i] = pis[i] * get_emission(x[0], y[0], i));
     }
 
     //normalize starting values
@@ -40,7 +74,10 @@ void forward_algorithm(vector<int> x, vector<int> y){
                 alpha[t][i] += alpha[t-1][j] * trans[j][i];
             }
             
-            sum += (alpha[t][i] *= emissions[i][x[t]][y[t]]);
+            if(check_emission(x[t], y[t], i))
+                sum += (alpha[t][i] *= get_emission(x[t], y[t], i));
+            else 
+                sum += (alpha[t][i] *= 0.0);
         }
 
         //normalize
@@ -48,7 +85,9 @@ void forward_algorithm(vector<int> x, vector<int> y){
     }
 }
 
-void backward_algorithm(vector<int> x, vector<int> y){
+void backward_algorithm(pair<string, string> pairs){
+    string x = pairs.first;
+    string y = pairs.second;
 
     //init size and sum
     int size = max_size(x.size());
@@ -65,16 +104,15 @@ void backward_algorithm(vector<int> x, vector<int> y){
     }
 
     //iterate from T-1 to 0 for each beta
-    for(int t = x.size() - 2; t >= 0; t--){
+    for(int t = size - 2; t >= 0; t--){
         sum = 0;
 
         //calc beta * emis in t
         for(int i = 0; i < 3; i++){
             for(int j = 0; j < 3; j++){
-                beta[t][i] += beta[t+1][j] * trans[i][j] * emissions[j][x[t+1]][y[t+1]];
+                if(check_emission(x[t+1], y[t+1], j))
+                    sum += (beta[t][i] += beta[t+1][j] * trans[i][j] * get_emission(x[t+1], y[t+1], j));
             }
-            
-            sum += (beta[t][i] *= emissions[i][x[t]][y[t]]);
         }
 
         //normalize
