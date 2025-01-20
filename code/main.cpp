@@ -52,8 +52,9 @@ int main(int argc, char* argv[]){
         vector<pair<string, string>> dataset = get_file_name_into_folder(file_name);
         estimate_initial_prob(dataset);
         baum_welch(max_iter, tol, dataset);
-        save_model_params_to_file(file_save);
+        save_model_params_to_file("model.txt");
     } else if(mode == "viterbi"){
+        get_model_params_from_file("model.txt");
         pair<string, string> pair = read_file_into_pair(file_name);
         viterbi(pair, file_save);
     } else if(mode == "needleman"){
