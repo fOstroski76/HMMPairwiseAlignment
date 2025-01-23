@@ -10,3 +10,4 @@ train_pairs/*
 *.bin
 *.sh
 *.msi
+*.txt

@@ -40,7 +40,7 @@ void needleman_wunsch(pair<string, string> pair, const string& file_path){
     //     }
     //     cout << endl;
     // }
-
+    int ret = matrix[n][m];
     while(n > 0 || m > 0){
         if(n > 0 
         && m > 0 
@@ -62,4 +62,5 @@ void needleman_wunsch(pair<string, string> pair, const string& file_path){
     //cout << aligned_x << endl;
 
     save_pair_into_file(file_path, make_pair(aligned_x, aligned_y));   
+    cout << "Needleman-wunsch score: " << ret << endl;
 }
