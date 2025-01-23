@@ -24,5 +24,7 @@ Project contributors: Fran Ostroški & Leon Hegedić
 ##Requirements: 
 
 C++ 17 or newer
+
 Python 3.8 or newer
+
 Python biopython library (pip install biopython)
