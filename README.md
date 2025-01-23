@@ -21,6 +21,8 @@ Project contributors: Fran Ostroški & Leon Hegedić
 
 
 
-## Minimal system requirements: 
+##Requirements: 
 
-*isto dodaj*
+C++ 17 or newer
+Python 3.8 or newer
+Python biopython library (pip install biopython)
