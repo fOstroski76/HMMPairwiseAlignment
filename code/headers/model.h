@@ -7,6 +7,7 @@
 #include <string>
 #include <limits>
 #include <utility>
+#include <algorithm>
 
 using namespace std;
 
@@ -24,9 +25,15 @@ extern double emission_Iy[4];
 //alpha and beta
 extern double alpha[MAX_SIZE][3];
 extern double beta[MAX_SIZE][3];
+extern double scaler[MAX_SIZE];
+
+// print model params
+void print_model_params();
+void print_alpha_beta();
+void set_alpha_beta(int size);
 
 // extra
-double& get_emission(char xt, char yt, int state);
+double get_emission(char xt, char yt, int state);
 bool check_emission(char xt, char yt, int state);
 
 // evaluation functions
@@ -34,8 +41,8 @@ void forward_algorithm(pair<string, string> pair);
 void backward_algorithm(pair<string, string> pair);
 
 // learning function
-void estimate_initial_prob(vector<pair<string, string>> dataset);
-void baum_welch(int max_iterations, double tol, vector<pair<string, string>> dataset);
+void estimate_initial_prob(pair<string, string> dataset);
+void baum_welch(int max_iterations, double tol, pair<string, string> dataset);
 
 //deconding
 void viterbi(pair<string, string> pair, const string& file_path);

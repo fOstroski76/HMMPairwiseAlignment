@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "model.h"
+#include "../headers/utils.h"
+#include "../headers/model.h"
 
 using namespace std;
 
@@ -22,6 +22,7 @@ int convert_char_into_int(char c){
     case '-':
         return 4;
     default:
+        return -1;
         break;
     }
 }
@@ -33,7 +34,7 @@ vector<pair<string, string>> get_file_name_into_folder(const string& folder_path
         // Iterate through the folder
         for (const auto& entry : filesystem::directory_iterator(folder_path)) {
             if (filesystem::is_regular_file(entry.path())) { 
-                file_names.push_back(entry.path().filename().string());
+                file_names.push_back(entry.path());
             }
         }
     } catch (const filesystem::filesystem_error& e) {
@@ -67,6 +68,8 @@ pair<string, string> read_file_into_pair(const string& file_path) {
     if (!getline(file, line2)) {
         throw runtime_error("Error: File does not contain the second line.");
     }
+
+    file.close();
 
     return make_pair(line1, line2);
 }

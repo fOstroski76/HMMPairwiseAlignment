@@ -10,11 +10,14 @@ using namespace std;
 int main(int argc, char* argv[]){
     int opt;
     string file_save = "", mode = "", file_name = "";
-    int max_iter = 2000;
+    int max_iter = 20;
     double tol = 0.01;
 
-    while((opt = getopt(argc, argv, ":nmfbt")) != -1)  
+    while((opt = getopt(argc, argv, "s:m:f:b:t:")) != -1)  
     {  
+        if(optarg == NULL){
+            cout << "error" << endl;
+        }
         switch(opt)  
         {
             case 's':
@@ -41,7 +44,7 @@ int main(int argc, char* argv[]){
             cout << "Invalid argument given!"<< endl;
             return 1;
         }  
-    }  
+    }
 
     if(file_save == "" || file_name == "" || mode == ""){
         cout << "Arguments s, f and m are mandatory!" << endl;
@@ -49,10 +52,11 @@ int main(int argc, char* argv[]){
     }
 
     if(mode == "train"){
-        vector<pair<string, string>> dataset = get_file_name_into_folder(file_name);
-        estimate_initial_prob(dataset);
+        pair<string, string> dataset = read_file_into_pair(file_name);
+        //estimate_initial_prob(dataset);
+        get_model_params_from_file("model.txt");
         baum_welch(max_iter, tol, dataset);
-        save_model_params_to_file("model.txt");
+        //save_model_params_to_file("model.txt");
     } else if(mode == "viterbi"){
         get_model_params_from_file("model.txt");
         pair<string, string> pair = read_file_into_pair(file_name);

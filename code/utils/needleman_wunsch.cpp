@@ -1,5 +1,5 @@
-#include "needleman_wunsch.h"
-#include "utils.h"
+#include "../headers/needleman_wunsch.h"
+#include "../headers/utils.h"
 
 using namespace std;
 
@@ -10,7 +10,7 @@ void needleman_wunsch(pair<string, string> pair, const string& file_path){
     int m = y.length();
 
     vector<vector<int>> matrix (n + 1, vector<int>(m + 1, 0));
-    int match = 1, mismatch = -1, gap = -2;
+    int match = 1, mismatch = -1, gap = -1;
 
     string aligned_x = "", aligned_y = "";
     int diag = 0, top = 0, left = 0;
@@ -33,28 +33,33 @@ void needleman_wunsch(pair<string, string> pair, const string& file_path){
         }
     }
 
+    // for(int i = 0; i < matrix.size(); i++)
+    // {
+    //     for(int j = 0; j < matrix[0].size(); j++){
+    //         cout << matrix[i][j] << "    ";
+    //     }
+    //     cout << endl;
+    // }
+
     while(n > 0 || m > 0){
         if(n > 0 
         && m > 0 
-        && (matrix[n][m] == matrix[n-1][m-1] + match 
-        || matrix[n][m] == matrix[n-1][m-1] + mismatch)){
-            aligned_x[n] += x[n-1];
-            aligned_y[n] += y[m-1];
+        && (x[n-1] == y[m-1] ? matrix[n][m] == matrix[n-1][m-1] + match : matrix[n][m] == matrix[n-1][m-1] + mismatch)){
+            aligned_x = x[n-1] + aligned_x;
+            aligned_y = y[m-1] + aligned_y;
             n--;
             m--;
         } else if(n > 0 && matrix[n][m] == matrix[n-1][m] + gap){
-            aligned_x += x[n-1];
-            aligned_y += '-';
+            aligned_x = x[n-1] + aligned_x;
+            aligned_y = '-' + aligned_y;
             n--;
         } else {
-            aligned_x += '-';
-            aligned_y += y[m-1];
+            aligned_x = '-' + aligned_x;
+            aligned_y = y[m-1] + aligned_y;
             m--;
         }
     }
-
-    std::reverse(aligned_x.begin(), aligned_x.end());
-    std::reverse(aligned_y.begin(), aligned_y.end());
+    //cout << aligned_x << endl;
 
     save_pair_into_file(file_path, make_pair(aligned_x, aligned_y));   
 }
