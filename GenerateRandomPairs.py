@@ -29,7 +29,8 @@ row1, row2 = generate_random_pairs(length, num_differences)
 #print("Row 2:", row2)
 
 # Create the directory if it doesn't exist
-directory = "/Users/franostroski/Documents/develop/BIOINF2/projekt/random_sequences"
+directory = "random_sequences"
+
 if not os.path.exists(directory):
     os.makedirs(directory)
 
@@ -41,7 +42,7 @@ while os.path.exists(os.path.join(directory, f"randomsequence{file_number}.txt")
 # Save the rows to the file
 file_path = os.path.join(directory, f"randomsequence{file_number}.txt")
 with open(file_path, 'w') as file:
-    file.write(f"Row 1: {row1}\n")
-    file.write(f"Row 2: {row2}\n")
+    file.write(f"{row1}\n")
+    file.write(f"{row2}\n")
 
 print(f"Rows saved to {file_path}")

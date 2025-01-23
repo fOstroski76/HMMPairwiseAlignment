@@ -30,8 +30,8 @@ def clean_alignment(seq1, seq2):
 
 
 # Example usage
-seq1 = "-G"
-seq2 = "G-"
+seq1 = "-GAA"
+seq2 = "C-AA"
 cleaned_seq1, cleaned_seq2 = clean_alignment(seq1, seq2)
 print("Cleaned Alignment:")
 print(cleaned_seq1)
