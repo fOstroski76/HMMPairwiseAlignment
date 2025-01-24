@@ -105,8 +105,6 @@ void forward_algorithm(pair<string, string> pairs){
 }
 
 void backward_algorithm(pair<string, string> pairs){
-    ofstream file("data.txt", ios::app);
-    file << "BETA" << endl;
     string x = pairs.first;
     string y = pairs.second;
 
@@ -127,21 +125,10 @@ void backward_algorithm(pair<string, string> pairs){
             for(int j = 0; j < 3; j++){
                 log_adds.push_back(beta[t+1][j] + trans[i][j] + get_emission(x[t+1], y[t+1], j));
 
-                if(t > 0){
-                    file << beta[t+1][j] << " " << trans[i][j] << " " << get_emission(x[t+1], y[t+1], j) << " | ";
-                }
             }
             
             beta[t][i] = log_sum_exp(log_adds);
             log_adds.clear();
-            if(t > 0){
-                file << beta[t][i] << endl;
-            }
-        }
-        if(t > 0){
-            file << endl;
-        }    
+        }  
     }
-    file << endl;
-    file.close();
 }
