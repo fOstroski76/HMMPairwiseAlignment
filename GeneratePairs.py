@@ -67,8 +67,8 @@ def generate_pairs(file_name, desired_length):
     try:
         # Ensure desired_length is valid
         
-        if desired_length not in [10, 100, 1000, 5000, 10000, 'max_length']:
-            raise ValueError("desired_length must be one of [10, 100, 1000, 5000, 10000 or 'max_length']")
+        if desired_length not in [10, 100, 1000, 5000, 10000,15000,20000, 'max_length']:
+            raise ValueError("desired_length must be one of [10, 100, 1000, 5000, 10000, 15000, 20000 or 'max_length']")
 
         # Read the file and extract sequences
         with open(file_name, 'r') as file:
@@ -132,7 +132,7 @@ def generate_pairs(file_name, desired_length):
 def main():
     parser = argparse.ArgumentParser(description="Generate pairs from a parsed .fasta file.")
     parser.add_argument('-fn', '--file_name', type=str, required=True, help="Name of the .txt file containing sequences.")
-    parser.add_argument('-len', '--desired_length', type=str, required=True, help="Desired length of the result pairs (10, 100, 1000, 5000, 10000 or 'max_length').")
+    parser.add_argument('-len', '--desired_length', type=str, required=True, help="Desired length of the result pairs (10, 100, 1000, 5000, 10000, 15000, 20000 or 'max_length').")
     args = parser.parse_args()
 
     file_name = os.path.join('sequences', args.file_name)
