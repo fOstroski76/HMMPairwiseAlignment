@@ -14,30 +14,19 @@ double gamma_Iy[4];
 
 //xis
 double xi[3][3];
-double xi_help[3][3];
-
-// smoother
-//double smooth_const = 0.0001;
 
 //function for calculation gamma for each step t
 void calc_gamma(int t, int size){
-    double sum = 0.0;
+    vector<double> log_adds;
+
     // calc gamma in step t
     for(int i = 0; i < 3; i++){
-        sum+=(gamma[t][i] = alpha[t][i] * beta[t][i]);
-        //if(gamma[t][i] <= smooth_const) gamma[t][i] = smooth_const; 
-        //gamma[t][i] /= scaler[t];
-
-       
+        log_adds.push_back(alpha[t][i] + beta[t][i]);
     }
 
-    for(int i = 0; i < 3; i++){
-        gamma[t][i] /= sum;
-
-        if(t < size - 1){
-            sum_gamma[i] += gamma[t][i];
-        }
-    }
+    double sum = log_sum_exp(log_adds);
+    for(int i = 0; i < 3; i++)
+        gamma[t][i] = log_adds[i] - sum;
 }
 
 //reset xi and sum_xi for every iteration and every value
@@ -45,7 +34,6 @@ void reset_xi_and_gamma(){
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
             xi[i][j] = 0.0;
-            xi_help[i][j] = 0.0;
         }
     }
 
@@ -70,45 +58,20 @@ void reset_xi_and_gamma(){
 
 //function for calculationg xi in each step t
 void calc_xi(int t, char x, char y){
-    double sum = 0.0;
+    vector<double> log_adds;
 
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
-            if(check_emission(x, y, j))
-                sum += alpha[t][i] * trans[i][j] * beta[t+1][j] * get_emission(x, y, j);
-                
+            log_adds.push_back(alpha[t][i] + trans[i][j] + beta[t+1][j] + get_emission(x, y, j));    
         }
-
-        //for(int j = 0; j < 3; j++){
-        //    if(i == 2 && j == 1) continue;
-        //    if(i == 1 && j == 2) continue;
-        //    if(xi[i][j] <= smooth_const) xi[i][j] = smooth_const;
-        //}
     }
-
-    sum = (1.0 / sum);
+    double sum = log_sum_exp(log_adds);
 
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
-            if(check_emission(x, y, j))
-                xi[i][j] += alpha[t][i] * trans[i][j] * beta[t+1][j] * get_emission(x, y, j) * sum;
-                
+            xi[i][j] += exp(log_adds[i*3+j] - sum);
         }
-
-        //for(int j = 0; j < 3; j++){
-        //    if(i == 2 && j == 1) continue;
-        //    if(i == 1 && j == 2) continue;
-        //    if(xi[i][j] <= smooth_const) xi[i][j] = smooth_const;
-        //}
     }
-
-    //for(int i = 0; i < 3; i++){
-    //    for(int j = 0; j < 3; j++){
-    //        if(check_emission(x, y, j))
-    //            xi[i][j] += (xi_help[i][j] * (1.0 / sum));
-    //            xi_help[i][j] = 0.0;
-    //    }
-    //}
 }
 
 void print_xi(){
@@ -153,7 +116,7 @@ void print_estimate_gammas(){
 
 // function for calculating the relative difference between values
 double eval(double& prev_val, double next_val){
-    double relative_diff = fabs(prev_val - next_val);
+    double relative_diff = fabs(exp(prev_val) - exp(next_val));
 
     prev_val = next_val;
 
@@ -289,63 +252,54 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
         // calc gamma for each emission
         for(int t = 0; t < size; t++){
             if(convert_char_into_int(y[t]) == 4){
-                gamma_Ix[convert_char_into_int(x[t])] += gamma[t][1];
+                gamma_Ix[convert_char_into_int(x[t])] += exp(gamma[t][1]);
             } else if(convert_char_into_int(x[t]) == 4){
-                gamma_Iy[convert_char_into_int(y[t])] += gamma[t][2];
+                gamma_Iy[convert_char_into_int(y[t])] += exp(gamma[t][2]);
             } else {
-                gamma_M[convert_char_into_int(x[t])][convert_char_into_int(y[t])] += gamma[t][0];
+                gamma_M[convert_char_into_int(x[t])][convert_char_into_int(y[t])] += exp(gamma[t][0]);
             }
+        }
+
+        for(int i = 0; i < size; i++){
+            sum_gamma[0] += exp(gamma[i][0]);
+            sum_gamma[1] += exp(gamma[i][1]);
+            sum_gamma[2] += exp(gamma[i][2]);
         }
 
         //calc trans matrix values
         for(int i = 0; i < 3; i++){
             for(int j = 0; j < 3; j++){
-                    temp = xi[i][j] / sum_gamma[i];
+                temp = log(xi[i][j]) - log(sum_gamma[i]);
                 rel_diff += eval(trans[i][j], temp);
-                //cout << trans[i][j] << " ";
-
-                //cout << rel_diff << " ";
             }
-            //cout << endl;
-            sum_gamma[i] += gamma[size - 1][i];
         }
-        //cout << endl;
 
         for(int state = 0; state < 3; state++){
             //calc pis
             rel_diff += eval(pis[state], gamma[0][state]);
-            //cout << rel_diff << endl;
             
             //calc emissions
             if(state == 0){
                 for(int i = 0; i < 4; i++){
                     for(int j = 0; j < 4; j++){
-                        rel_diff += eval(emission_M[i][j], gamma_M[i][j] / sum_gamma[state]);
-                        //cout << rel_diff << " ";
+                        rel_diff += eval(emission_M[i][j], log(gamma_M[i][j]) - log(sum_gamma[state]));
                     }
-                    //cout << endl;
                 }
-                //cout << endl;
             } else if(state == 1){
                 for(int i = 0; i < 4; i++){
-                    rel_diff += eval(emission_Ix[i], gamma_Ix[i] / sum_gamma[state]);
-                    //cout << rel_diff << " ";
+                    rel_diff += eval(emission_Ix[i], log(gamma_Ix[i]) - log(sum_gamma[state]));
                 }
-                //cout << endl << endl;
             } else if(state == 2){
                 for(int i = 0; i < 4; i++){
-                    rel_diff += eval(emission_Iy[i], gamma_Iy[i] / sum_gamma[state]);
-                //cout << rel_diff << " "; 
+                    rel_diff += eval(emission_Iy[i], log(gamma_Iy[i]) - log(sum_gamma[state]));
                 }
-            //cout << endl << endl;
             }
         }
 
-        rel_diff /= 36;
+        rel_diff = rel_diff/36;
         cout << "t=" << iter << ": " << rel_diff << endl << endl;
-        //cout << "Pair diff=" << rel_diff << endl << endl;    
         iter++;
-        print_model_params();
+        //print_model_params();
         cout << endl;
     }
 }

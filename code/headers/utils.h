@@ -10,7 +10,11 @@
 
 using namespace std;
 
+const double log_const = 1.0e-10;
+
 // util functions
+double safe_log(double value);
+double log_sum_exp(const vector<double>& logValues);
 int max_size(int seq_size);
 int convert_char_into_int(char c);
 

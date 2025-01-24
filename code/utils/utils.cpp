@@ -8,6 +8,24 @@ int max_size(int seq_size){
     return min(MAX_SIZE, seq_len);
 }
 
+double safe_log(double value){
+    return (value >= log_const) ? log(value) : log(value);
+}
+
+// Log-sum-exp function
+double log_sum_exp(const vector<double>& logValues) {
+    double maxLog = *max_element(logValues.begin(), logValues.end());
+    if (maxLog == -numeric_limits<double>::infinity()) {
+        return -numeric_limits<double>::infinity(); // All terms are -inf
+    }
+    double sumExp = 0.0;
+    for (double logValue : logValues) {
+        if(logValue != -numeric_limits<double>::infinity())
+            sumExp += exp(logValue - maxLog);
+    }
+    return maxLog + log(sumExp);
+}
+
 int convert_char_into_int(char c){
     switch (c)
     {
@@ -95,14 +113,15 @@ void get_model_params_from_file(const string& file_path){
     }
 
     string param = "";
+    double num=0.0;
     try {
         // get pis
         for(int i = 0; i < 3; i++){
             if (!getline(file, param)) {
                 throw runtime_error("Error: File does not contain the first line.");
             }
-
-            pis[i] = stod(param);
+            num = stod(param);
+            pis[i] = safe_log(num);
         }
 
         // get trans
@@ -111,8 +130,8 @@ void get_model_params_from_file(const string& file_path){
                 if (!getline(file, param)) {
                     throw runtime_error("Error: File does not contain the first line.");
                 }
-
-                trans[i][j] = stod(param);
+                num = stod(param);
+                trans[i][j] = safe_log(num);
             }
         }
 
@@ -123,7 +142,8 @@ void get_model_params_from_file(const string& file_path){
                     throw runtime_error("Error: File does not contain the first line.");
                 }
 
-                emission_M[i][j] = stod(param);
+                num = stod(param);
+                emission_M[i][j] = safe_log(num);
             }
         }
 
@@ -133,16 +153,18 @@ void get_model_params_from_file(const string& file_path){
                 throw runtime_error("Error: File does not contain the first line.");
             }
 
-            emission_Ix[i] = stod(param);
+            num = stod(param);
+            emission_Ix[i] = safe_log(num);
         }
 
-        //get Ix state emissions
+        //get Iy state emissions
         for(int i = 0; i < 4; i++){
             if (!getline(file, param)) {
                 throw runtime_error("Error: File does not contain the first line.");
             }
 
-            emission_Iy[i] = stod(param);
+            num = stod(param);
+            emission_Iy[i] = safe_log(num);
         }
     } catch (const std::invalid_argument& e) {
         std::cerr << "Error: Invalid argument. The string cannot be converted to a double." << std::endl;
@@ -161,31 +183,31 @@ void save_model_params_to_file(const string& file_path){
 
     //save pis
     for(int i = 0; i < 3; i++){
-        out_file << pis[i] << endl;
+        out_file << exp(pis[i]) << endl;
     }
 
     // save trans
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
-            out_file << trans[i][j] << endl;
+            out_file << exp(trans[i][j]) << endl;
         }
     }
 
     //save M state emissions
     for(int i = 0;  i < 4; i++){
         for(int j = 0;  j < 4; j++){
-            out_file << emission_M[i][j] << endl;;
+            out_file << exp(emission_M[i][j]) << endl;;
         }
     }
 
     //save Ix state emissions
     for(int i = 0; i < 4; i++){
-        out_file << emission_Ix[i] << endl;
+        out_file << exp(emission_Ix[i]) << endl;
     }
 
     //save Ix state emissions
     for(int i = 0; i < 4; i++){
-        out_file << emission_Iy[i] << endl;
+        out_file << exp(emission_Iy[i]) << endl;
     }
 
     out_file.close();
