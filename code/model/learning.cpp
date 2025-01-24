@@ -15,65 +15,7 @@ double gamma_Iy[4];
 //xis
 double xi[3][3];
 
-//function for calculation gamma for each step t
-void calc_gamma(int t, int size){
-    vector<double> log_adds;
-
-    // calc gamma in step t
-    for(int i = 0; i < 3; i++){
-        log_adds.push_back(alpha[t][i] + beta[t][i]);
-    }
-
-    double sum = log_sum_exp(log_adds);
-    for(int i = 0; i < 3; i++)
-        gamma[t][i] = log_adds[i] - sum;
-}
-
-//reset xi and sum_xi for every iteration and every value
-void reset_xi_and_gamma(){
-    for(int i = 0; i < 3; i++){
-        for(int j = 0; j < 3; j++){
-            xi[i][j] = 0.0;
-        }
-    }
-
-    for(int t = 0; t < MAX_SIZE; t++){
-        gamma[t][0] = 0.0;
-        gamma[t][1] = 0.0;
-        gamma[t][2] = 0.0;
-    }
-
-    sum_gamma[0] = 0.0;
-    sum_gamma[1] = 0.0;
-    sum_gamma[2] = 0.0;
-
-    for(int i = 0; i < 4; i++){
-        for(int j = 0; j < 4; j++){
-            gamma_M[i][j] = 0.0;
-        }
-        gamma_Ix[i] = 0.0;
-        gamma_Iy[i] = 0.0;
-    }
-}
-
-//function for calculationg xi in each step t
-void calc_xi(int t, char x, char y){
-    vector<double> log_adds;
-
-    for(int i = 0; i < 3; i++){
-        for(int j = 0; j < 3; j++){
-            log_adds.push_back(alpha[t][i] + trans[i][j] + beta[t+1][j] + get_emission(x, y, j));    
-        }
-    }
-    double sum = log_sum_exp(log_adds);
-
-    for(int i = 0; i < 3; i++){
-        for(int j = 0; j < 3; j++){
-            xi[i][j] += exp(log_adds[i*3+j] - sum);
-        }
-    }
-}
-
+// functions for printing
 void print_xi(){
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
@@ -114,6 +56,65 @@ void print_estimate_gammas(){
     cout << endl << endl;
 }
 
+//reset xi and sum_xi for every iteration and every value
+void reset_xi_and_gamma(){
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            xi[i][j] = 0.0;
+        }
+    }
+
+    for(int t = 0; t < MAX_SIZE; t++){
+        gamma[t][0] = 0.0;
+        gamma[t][1] = 0.0;
+        gamma[t][2] = 0.0;
+    }
+
+    sum_gamma[0] = 0.0;
+    sum_gamma[1] = 0.0;
+    sum_gamma[2] = 0.0;
+
+    for(int i = 0; i < 4; i++){
+        for(int j = 0; j < 4; j++){
+            gamma_M[i][j] = 0.0;
+        }
+        gamma_Ix[i] = 0.0;
+        gamma_Iy[i] = 0.0;
+    }
+}
+
+//function for calculation gamma for each step t
+void calc_gamma(int t, int size){
+    vector<double> log_adds;
+
+    // calc gamma in step t
+    for(int i = 0; i < 3; i++){
+        log_adds.push_back(alpha[t][i] + beta[t][i]);
+    }
+
+    double sum = log_sum_exp(log_adds);
+    for(int i = 0; i < 3; i++)
+        gamma[t][i] = log_adds[i] - sum;
+}
+
+//function for calculationg xi in each step t
+void calc_xi(int t, char x, char y){
+    vector<double> log_adds;
+
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            log_adds.push_back(alpha[t][i] + trans[i][j] + beta[t+1][j] + get_emission(x, y, j));    
+        }
+    }
+    double sum = log_sum_exp(log_adds);
+
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            xi[i][j] += exp(log_adds[i*3+j] - sum);
+        }
+    }
+}
+
 // function for calculating the relative difference between values
 double eval(double& prev_val, double next_val){
     double relative_diff = fabs(exp(prev_val) - exp(next_val));
@@ -123,6 +124,7 @@ double eval(double& prev_val, double next_val){
     return relative_diff;
 }   
 
+//function for estimating initial values for the model before the training
 void estimate_initial_prob(vector<pair<string, string>> dataset){
     char prev_x, prev_y;
     int size;
@@ -215,7 +217,22 @@ void estimate_initial_prob(vector<pair<string, string>> dataset){
     }
 }
 
-//Baum-Welch algorithm for training the model
+/**
+ * @brief Function for training the model using the Baum-Welch algorithm.
+ * 
+ * This function takes a pair of sequences and trains the model using the Baum-Welch algorithm 
+ * for a set number of iterations or until the loss falls below a specified tolerance value.
+ * 
+ * @param dataset The pair of strings using the std::pair class from the C++ Standard Library.
+ * @param max_iterations The maximum number of iterations for training the model.
+ * @param tol The minimum tolerance value; training will stop when the loss is below this value.
+ * 
+ * @note The tol parameter should be less than 0.1.
+ * @note The model may not be numerically stable.
+ * @warning The dataset pairs must be of equal length.
+ * 
+ * @author Leon Hegedić
+ */
 void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
     //init iter and size
     int iter = 0;
@@ -240,8 +257,6 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
         forward_algorithm(dataset);
         backward_algorithm(dataset);
 
-        //print_alpha_beta();
-
         //calc gamma and xi
         for(int t = 0; t < size; t++){
             calc_gamma(t, size);
@@ -249,9 +264,6 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
                 calc_xi(t, x[t+1], y[t+1]);
         }
         
-        //print_gamma();
-        //print_xi();
-
         // calc gamma for each emission
         for(int t = 0; t < size; t++){
             if(convert_char_into_int(y[t]) == 4){
@@ -302,7 +314,5 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
         rel_diff = rel_diff / (36);
         cout << "t=" << iter << ": " << rel_diff << endl << endl;
         iter++;
-        //print_model_params();
-        cout << endl;
     }
 }

@@ -3,6 +3,17 @@
 
 using namespace std;
 
+/**
+ * @brief Function for aligning sequences using the Needleman-Wunsch algorithm.
+ * 
+ * This function takes a pair of sequences and aligns them using the Needleman-Wunsch algorithm. 
+ * The aligned sequences are then saved to the specified file path.
+ * 
+ * @param pair The pair of strings to be aligned, using the std::pair class from the C++ Standard Library.
+ * @param file_path The file path where the aligned sequences will be saved.
+ * 
+ * @author Leon Hegedić
+ */
 void needleman_wunsch(pair<string, string> pair, const string& file_path){ 
     string x = pair.first;
     string y = pair.second;
@@ -33,13 +44,6 @@ void needleman_wunsch(pair<string, string> pair, const string& file_path){
         }
     }
 
-    // for(int i = 0; i < matrix.size(); i++)
-    // {
-    //     for(int j = 0; j < matrix[0].size(); j++){
-    //         cout << matrix[i][j] << "    ";
-    //     }
-    //     cout << endl;
-    // }
     int ret = matrix[n][m];
     while(n > 0 || m > 0){
         if(n > 0 
@@ -59,7 +63,6 @@ void needleman_wunsch(pair<string, string> pair, const string& file_path){
             m--;
         }
     }
-    //cout << aligned_x << endl;
 
     save_pair_into_file(file_path, make_pair(aligned_x, aligned_y));   
     cout << "Needleman-wunsch score: " << ret << endl;

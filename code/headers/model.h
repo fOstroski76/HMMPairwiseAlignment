@@ -25,7 +25,6 @@ extern double emission_Iy[4];
 //alpha and beta
 extern double alpha[MAX_SIZE][3];
 extern double beta[MAX_SIZE][3];
-extern double scaler[MAX_SIZE];
 
 // print model params
 void print_model_params();

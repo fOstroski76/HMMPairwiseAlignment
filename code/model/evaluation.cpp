@@ -15,35 +15,14 @@ double emission_Iy[4];
 //alpha and beta
 double alpha[MAX_SIZE][3];
 double beta[MAX_SIZE][3];
-double scaler[MAX_SIZE];
 
+// setting inital values for each train
 void set_alpha_beta(int size){
     for(int t = 0; t < size; t++){
         for(int i = 0; i < 3; i++){
             alpha[t][t] = 0.0;
             beta[t][i] = 0.0;
         }
-
-        scaler[t] = 0.0;
-    }
-}
-
-void print_alpha_beta(){
-    //print alpha
-    cout << "Alpha: " << endl;
-    for(int t = 0; t < 10; t++){
-        for (int i = 0; i < 3; i++){
-            cout << alpha[t][i] << " ";
-        }
-        cout << endl;
-    }
-
-    cout << "Beta: " << endl;
-    for(int t = 0; t < 10; t++){
-        for (int i = 0; i < 3; i++){
-            cout << beta[t][i] << " ";
-        }
-        cout << endl;
     }
 }
 
@@ -76,7 +55,17 @@ double get_emission(char xt, char yt, int state){
     }
 }
 
-// forward algorithm for alpha
+/**
+ * @brief Function for calculating forward probabilities.
+ * 
+ * This function takes a pair of sequences and calculates the forward probabilities 
+ * for the given pair. The probabilities are stored in the alpha double array.
+ * 
+ * @param pairs The pair of strings using the std::pair class from the C++ Standard Library.
+ * 
+ * @note The backward probabilities are stored as log form.
+ * @warning The sequences in the pair provided to this algorithm must be of the same length.
+ */
 void forward_algorithm(pair<string, string> pairs){
     string x = pairs.first;
     string y = pairs.second;
@@ -104,6 +93,17 @@ void forward_algorithm(pair<string, string> pairs){
     }
 }
 
+/**
+ * @brief Function for calculating backward probabilities.
+ * 
+ * This function takes a pair of sequences and calculates the backward probabilities 
+ * for the given pair. The probabilities are stored in the beta double array.
+ * 
+ * @param pairs The pair of strings using the std::pair class from the C++ Standard Library.
+ * 
+ * @note The backward probabilities are stored as log form.
+ * @warning The sequences in the pair provided to this algorithm must be of the same length.
+ */
 void backward_algorithm(pair<string, string> pairs){
     string x = pairs.first;
     string y = pairs.second;
