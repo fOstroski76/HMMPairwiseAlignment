@@ -11,7 +11,7 @@
 
 using namespace std;
 
-const int MAX_SIZE = 10000;
+const int MAX_SIZE = 20000;
 
 // trans params
 extern double pis[3];
@@ -41,7 +41,7 @@ void forward_algorithm(pair<string, string> pair);
 void backward_algorithm(pair<string, string> pair);
 
 // learning function
-void estimate_initial_prob(pair<string, string> dataset);
+void estimate_initial_prob(vector<pair<string, string>> dataset);
 void baum_welch(int max_iterations, double tol, pair<string, string> dataset);
 
 //deconding

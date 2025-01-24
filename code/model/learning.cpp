@@ -123,62 +123,64 @@ double eval(double& prev_val, double next_val){
     return relative_diff;
 }   
 
-void estimate_initial_prob(pair<string, string> dataset){
+void estimate_initial_prob(vector<pair<string, string>> dataset){
     char prev_x, prev_y;
     int size;
 
-    // starting pis and first part of emis
-    if(dataset.first[0] != '-' && dataset.second[0] != '-'){
-        pis[0]++;
-        emission_M[convert_char_into_int(dataset.first[0])][convert_char_into_int(dataset.second[0])]++;
-    } else if (dataset.first[0] != '-'){
-        pis[1]++;
-        emission_Ix[convert_char_into_int(dataset.first[0])]++;
-    } else {
-        pis[2]++;
-        emission_Iy[convert_char_into_int(dataset.second[0])]++;
-    }
-
-    prev_x = dataset.first[0];
-    prev_y = dataset.second[0];
-
-    size = max_size(dataset.first.length());
-
-    // starting trans
-    for(int t = 1; t < size; t++){
-        if(prev_x != '-' && prev_y != '-'){
-            if(dataset.first[t] != '-' && dataset.second[t] != '-'){
-                trans[0][0]++;
-            } else if (dataset.first[t] != '-'){
-                trans[0][1]++;
-                //cout << "Here" << endl;
-            } else {
-                trans[0][2]++;
-            }
-        } else if(prev_x != '-'){
-            if(dataset.first[t] != '-' && dataset.second[t] != '-'){
-                trans[1][0]++;
-            } else {
-                trans[1][1]++;
-            }
+    for(pair<string, string> pair : dataset){
+        // starting pis and first part of emis
+        if(pair.first[0] != '-' && pair.second[0] != '-'){
+            pis[0]++;
+            emission_M[convert_char_into_int(pair.first[0])][convert_char_into_int(pair.second[0])]++;
+        } else if (pair.first[0] != '-'){
+            pis[1]++;
+            emission_Ix[convert_char_into_int(pair.first[0])]++;
         } else {
-            if(dataset.first[t] != '-' && dataset.second[t] != '-'){
-                trans[2][0]++;
-            } else {
-                trans[2][2]++;
-            }
+            pis[2]++;
+            emission_Iy[convert_char_into_int(pair.second[0])]++;
         }
 
-        prev_x = dataset.first[t];
-        prev_y = dataset.second[t];
-        
-        //prev are now curr
-        if(prev_x != '-' && prev_y != '-'){
-            emission_M[convert_char_into_int(prev_x)][convert_char_into_int(prev_y)]++;
-        } else if(prev_x != '-'){
-            emission_Ix[convert_char_into_int(prev_x)]++;
-        } else {
-            emission_Iy[convert_char_into_int(prev_y)]++;
+        prev_x = pair.first[0];
+        prev_y = pair.second[0];
+
+        size = max_size(pair.first.length());
+
+        // starting trans
+        for(int t = 1; t < size; t++){
+            if(prev_x != '-' && prev_y != '-'){
+                if(pair.first[t] != '-' && pair.second[t] != '-'){
+                    trans[0][0]++;
+                } else if (pair.first[t] != '-'){
+                    trans[0][1]++;
+                    //cout << "Here" << endl;
+                } else {
+                    trans[0][2]++;
+                }
+            } else if(prev_x != '-'){
+                if(pair.first[t] != '-' && pair.second[t] != '-'){
+                    trans[1][0]++;
+                } else {
+                    trans[1][1]++;
+                }
+            } else {
+                if(pair.first[t] != '-' && pair.second[t] != '-'){
+                    trans[2][0]++;
+                } else {
+                    trans[2][2]++;
+                }
+            }
+
+            prev_x = pair.first[t];
+            prev_y = pair.second[t];
+            
+            //prev are now curr
+            if(prev_x != '-' && prev_y != '-'){
+                emission_M[convert_char_into_int(prev_x)][convert_char_into_int(prev_y)]++;
+            } else if(prev_x != '-'){
+                emission_Ix[convert_char_into_int(prev_x)]++;
+            } else {
+                emission_Iy[convert_char_into_int(prev_y)]++;
+            }
         }
     }
 
@@ -224,8 +226,9 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
     // train loop
     while(iter <= max_iterations && rel_diff > tol){
         rel_diff = 0.0;
+
         //set size
-        size = max_size(dataset.first.size());
+        size = max_size(x.length());
 
         //set alpha and beta to init values
         set_alpha_beta(size);
@@ -243,7 +246,7 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
         for(int t = 0; t < size; t++){
             calc_gamma(t, size);
             if(t < size - 1)
-                calc_xi(t, dataset.first[t+1], dataset.second[t+1]);
+                calc_xi(t, x[t+1], y[t+1]);
         }
         
         //print_gamma();
@@ -295,8 +298,8 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
                 }
             }
         }
-
-        rel_diff = rel_diff/36;
+    
+        rel_diff = rel_diff / (36);
         cout << "t=" << iter << ": " << rel_diff << endl << endl;
         iter++;
         //print_model_params();

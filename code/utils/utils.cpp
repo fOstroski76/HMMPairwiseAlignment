@@ -9,7 +9,7 @@ int max_size(int seq_size){
 }
 
 double safe_log(double value){
-    return (value >= log_const) ? log(value) : log(value);
+    return (value >= log_const) ? log(value) : log(log_const);
 }
 
 // Log-sum-exp function
@@ -45,7 +45,7 @@ int convert_char_into_int(char c){
     }
 }
 
-vector<pair<string, string>> get_file_name_into_folder(const string& folder_path) {
+vector<pair<string, string>> get_training_data_from_folder(const string& folder_path) {
     vector<string> file_names;
 
     try {

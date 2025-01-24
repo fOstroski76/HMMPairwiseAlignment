@@ -65,7 +65,7 @@ bool check_emission(char xt, char yt, int state){
 
 // get the emission depending on the state
 double get_emission(char xt, char yt, int state){
-    if(!check_emission(xt, yt, state))  return log(log_const);
+    if(!check_emission(xt, yt, state))  return -numeric_limits<double>::infinity();
 
     if(state == 0){
         return emission_M[convert_char_into_int(xt)][convert_char_into_int(yt)];
@@ -105,6 +105,8 @@ void forward_algorithm(pair<string, string> pairs){
 }
 
 void backward_algorithm(pair<string, string> pairs){
+    ofstream file("data.txt", ios::app);
+    file << "BETA" << endl;
     string x = pairs.first;
     string y = pairs.second;
 
@@ -123,12 +125,23 @@ void backward_algorithm(pair<string, string> pairs){
         //calc beta * emis in t
         for(int i = 0; i < 3; i++){
             for(int j = 0; j < 3; j++){
-                if(check_emission(x[t+1], y[t+1], j)){
-                    log_adds.push_back(beta[t+1][j] + trans[i][j] + get_emission(x[t+1], y[t+1], j));
+                log_adds.push_back(beta[t+1][j] + trans[i][j] + get_emission(x[t+1], y[t+1], j));
+
+                if(t > 0){
+                    file << beta[t+1][j] << " " << trans[i][j] << " " << get_emission(x[t+1], y[t+1], j) << " | ";
                 }
             }
+            
             beta[t][i] = log_sum_exp(log_adds);
             log_adds.clear();
+            if(t > 0){
+                file << beta[t][i] << endl;
+            }
         }
+        if(t > 0){
+            file << endl;
+        }    
     }
+    file << endl;
+    file.close();
 }
