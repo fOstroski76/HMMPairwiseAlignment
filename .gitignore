@@ -11,3 +11,14 @@ train_pairs/*
 *.sh
 *.msi
 *.txt
+.vscode/
+.vscode
+train4.txt
+training_no_0.txt
+model_for_work.txt
+HMM
+python_files/input
+python_files/sequences
+python_files/random_sequences
+python_files/TEST
+python_files/TRAIN

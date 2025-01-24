@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        vector<pair<string, string>> dataset = get_training_data_from_folder(file_name);
+        vector<pair<string, string>> dataset = get_training_data_from_folder(dir_name);
         estimate_initial_prob(dataset);
 
         string x = "";
