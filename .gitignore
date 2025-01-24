@@ -1,0 +1,13 @@
+train/*
+train_pairs/*
+!train/
+!train_pairs/
+
+# Ignore all executables
+*.exe
+*.out
+*.app
+*.bin
+*.sh
+*.msi
+*.txt
