@@ -190,20 +190,54 @@ void estimate_initial_prob(vector<pair<string, string>> dataset){
 
     // starting pis prob calc
     for(int i = 0; i < 3; i++) sum += pis[i];
-    for(int i = 0; i < 3; i++) pis[i] /= sum;
+    for(int i = 0; i < 3; i++){
+        if(sum == 0){
+            pis[i] = log(1.0/3);
+        } else {
+            pis[i] = log(pis[i]) - log(sum);
+        }
+        
+    } 
 
     // starting trans prob calc
     for(int i = 0; i < 3; i++){
         sum = 0;
 
         for(int j = 0; j < 3; j++) sum += trans[i][j];
-        for(int j = 0; j < 3; j++) trans[i][j] /= sum;
+        if(sum == 0){
+            if(i == 0){
+                trans[i][0] = log(1.0/3);
+                trans[i][1] = log(1.0/3);
+                trans[i][2] = log(1.0/3);
+            } 
+            else if(i == 1){
+                trans[i][0] = log(0.5);
+                trans[i][1] = log(0.5);
+                trans[i][2] = log(0.0);
+            } else {
+                trans[i][0] = log(0.5);
+                trans[i][1] = log(0.0);
+                trans[i][2] = log(0.5);
+            }
+        } else {
+            for(int j = 0; j < 3; j++)
+                trans[i][j] = log(trans[i][j]) - log(sum);
+        }
+    
     }
     sum = 0;
 
     // startign gamma_M
     for(int i = 0; i < 4; i++) for(int j = 0; j < 4; j++) sum += emission_M[i][j];
-    for(int i = 0; i < 4; i++) for(int j = 0; j < 4; j++) emission_M[i][j] /= sum;
+    for(int i = 0; i < 4; i++){
+        for(int j = 0; j < 4; j++){
+            if(sum == 0){
+                emission_M[i][j] = log(0.0625);
+            } else {
+                emission_M[i][j] = log(emission_M[i][j]) - log(sum);
+            }
+        } 
+    }
     
     //starting gamma_Ix and gamma_Iy
     int sum_x = 0, sum_y = 0;
@@ -212,9 +246,21 @@ void estimate_initial_prob(vector<pair<string, string>> dataset){
         sum_y += emission_Iy[i];
     }
     for(int i = 0; i < 4; i++){
-        emission_Ix[i] /= sum_x;
-        emission_Iy[i] /= sum_y;
+        if(sum_x == 0){
+            emission_Ix[i] = log(0.25);
+        } else {
+            emission_Ix[i] = log(emission_Ix[i]) - log(sum_x);
+        }
+
+        if(sum_y == 0){
+            emission_Iy[i] = log(0.25);
+        } else {
+            emission_Iy[i] = log(emission_Iy[i]) - log(sum_y);
+        }
     }
+     
+       
+    
 }
 
 /**
@@ -239,6 +285,7 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
     int size; 
     double rel_diff = 1e9, temp = 0; 
     string x = dataset.first, y = dataset.second;
+    bool change = true;
 
     // train loop
     while(iter <= max_iterations && rel_diff > tol){
@@ -252,10 +299,12 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
 
         //reset xi for every pair
         reset_xi_and_gamma();
-            
+        
         // run forward and backward
         forward_algorithm(dataset);
         backward_algorithm(dataset);
+
+        //print_alpha_beta();
 
         //calc gamma and xi
         for(int t = 0; t < size; t++){
@@ -283,34 +332,83 @@ void baum_welch(int max_iterations, double tol, pair<string, string> dataset){
 
         //calc trans matrix values
         for(int i = 0; i < 3; i++){
-            for(int j = 0; j < 3; j++){
-                temp = log(xi[i][j]) - log(sum_gamma[i]);
-                rel_diff += eval(trans[i][j], temp);
+            if(sum_gamma[i] == 0.0){
+                if(i == 0){
+                    rel_diff += eval(trans[i][0], log(1.0/3));
+                    rel_diff += eval(trans[i][1], log(1.0/3));
+                    rel_diff += eval(trans[i][2], log(1.0/3));
+                } 
+                else if(i == 1){
+                    rel_diff += eval(trans[i][0], log(0.5));
+                    rel_diff += eval(trans[i][1], log(0.5));
+                    rel_diff += eval(trans[i][2], log(0.0));
+                } else {
+                    rel_diff += eval(trans[i][0], log(0.5));
+                    rel_diff += eval(trans[i][1], log(0.0));
+                    rel_diff += eval(trans[i][2], log(0.5));
+                }
+            } else {
+                for(int j = 0; j < 3; j++){
+                    temp = log(xi[i][j]) - log(sum_gamma[i]);
+                    rel_diff += eval(trans[i][j], temp);
+                }
             }
+            
+        }
+
+        if(gamma[0][0] == -numeric_limits<double>::infinity()
+        && gamma[0][1] == -numeric_limits<double>::infinity()
+        && gamma[0][1] == -numeric_limits<double>::infinity()){
+            rel_diff += eval(pis[0], log(1.0/3));
+            rel_diff += eval(pis[1], log(1.0/3));
+            rel_diff += eval(pis[2], log(1.0/3));
+            change = false;
         }
 
         for(int state = 0; state < 3; state++){
             //calc pis
-            rel_diff += eval(pis[state], gamma[0][state]);
+            if(change) rel_diff += eval(pis[state], gamma[0][state]);
             
             //calc emissions
             if(state == 0){
-                for(int i = 0; i < 4; i++){
-                    for(int j = 0; j < 4; j++){
-                        rel_diff += eval(emission_M[i][j], log(gamma_M[i][j]) - log(sum_gamma[state]));
+                if(sum_gamma[state] == 0.0){
+                    for(int i = 0; i < 4; i++){
+                        for(int j = 0; j < 4; j++){
+                            rel_diff += eval(emission_M[i][j], log(0.0625));
+                        }
+                    }
+                } else {
+                    for(int i = 0; i < 4; i++){
+                        for(int j = 0; j < 4; j++){
+                            rel_diff += eval(emission_M[i][j], log(gamma_M[i][j]) - log(sum_gamma[state]));
+                        }
                     }
                 }
             } else if(state == 1){
-                for(int i = 0; i < 4; i++){
-                    rel_diff += eval(emission_Ix[i], log(gamma_Ix[i]) - log(sum_gamma[state]));
-                }
+                if(sum_gamma[state] == 0.0){
+                    for(int i = 0; i < 4; i++){
+                        rel_diff += eval(emission_Ix[i], log(0.25));
+                    }
+                } else {
+                    for(int i = 0; i < 4; i++){
+                        rel_diff += eval(emission_Ix[i], log(gamma_Ix[i]) - log(sum_gamma[state]));
+                    }
+                } 
             } else if(state == 2){
-                for(int i = 0; i < 4; i++){
-                    rel_diff += eval(emission_Iy[i], log(gamma_Iy[i]) - log(sum_gamma[state]));
+                if(sum_gamma[state] == 0.0){
+                    for(int i = 0; i < 4; i++){
+                        rel_diff += eval(emission_Ix[i], log(0.25));
+                    }
+                } else {
+                    for(int i = 0; i < 4; i++){
+                        rel_diff += eval(emission_Iy[i], log(gamma_Iy[i]) - log(sum_gamma[state]));
+                    }
                 }
             }
         }
-    
+
+        change = true;
+
         rel_diff = rel_diff / (36);
         cout << "t=" << iter << ": " << rel_diff << endl << endl;
         iter++;
